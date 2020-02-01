@@ -5,12 +5,14 @@ const MOVIEDEX = require('./movies-data.json')
 const cors = require('cors')
 const helmet = require('helmet')
 const app = express()
-const PORT = 8001
+const PORT = process.env.PORT || 8000
 
 // const MovieFilters = ['genre', 'country', 'avg_vote']
 
 
-app.use(morgan('dev'))
+ const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common'
+ app.use(morgan(morganSetting))
+
 app.use(cors())
 app.use(helmet())
 
@@ -24,6 +26,16 @@ app.use(function validateBearerToken(req, res, next) {
     }
   
     next()
+  })
+
+  app.use((error, req, res, next) => {
+    let response
+    if (process.env.NODE_ENV === 'production') {
+      response = { error: { message: 'server error' }}
+    } else {
+      response = { error }
+    }
+    res.status(500).json(response)
   })
 
 
@@ -53,6 +65,6 @@ app.get('/movie', function handleMovieFilters(req, res) {
   })
 
 app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}`)
+    
   })
 
